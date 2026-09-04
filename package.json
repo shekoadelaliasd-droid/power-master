@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "contract:emit": "prisma contract emit",
-    "postinstall": "prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",
