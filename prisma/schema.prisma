@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
+}
+
+model Customer {
+  id                Int                @id @default(autoincrement())
+  name              String
+  phone             String             @default("")
+  notes             String             @default("")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  sites             Site[]
+  ups               UPS[]
+  maintenanceOrders MaintenanceOrder[]
+}
+
+model Site {
+  id                Int                @id @default(autoincrement())
+  name              String
+  address           String             @default("")
+  phone             String             @default("")
+  customerId        Int
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  customer          Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  ups               UPS[]
+  maintenanceOrders MaintenanceOrder[]
+
+  @@index([customerId])
+}
+
+model Battery {
+  id        Int      @id @default(autoincrement())
+  type      String
+  power     String   @default("")
+  quantity  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UPSModel {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UPS {
+  id                Int                @id @default(autoincrement())
+  type              String
+  model             String
+  serial            String             @unique
+  power             String
+
+  customerId        Int?
+  siteId             Int?
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  site              Site?              @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  maintenanceOrders MaintenanceOrder[]
+
+  @@index([customerId])
+  @@index([siteId])
+}
+
+model MaintenanceOrder {
+  id            Int       @id @default(autoincrement())
+  orderNumber   String    @unique
+
+  customerId    Int
+  siteId        Int
+  upsId         Int
+
+  status        String    @default("مستلم")
+
+  faultType     String    @default("")
+  faultCode     String    @default("")
+
+  diagnosis     String    @default("")
+  actionTaken   String    @default("")
+  notes         String    @default("")
+
+  receivedAt    DateTime  @default(now())
+  completedAt   DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  customer      Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  site          Site      @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  ups           UPS       @relation(fields: [upsId], references: [id], onDelete: Restrict)
+
+  @@index([customerId])
+  @@index([siteId])
+  @@index([upsId])
+  @@index([status])
+}
